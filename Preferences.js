@@ -8,16 +8,18 @@ const windowWidth = Dimensions.get('window').width;
 
 const Preferences = ({ navigation }) => {
   const { user } = useUser(); // Get the user from context
-  const [rent, setRent] = useState(1000);
-  const [bedrooms, setBedrooms] = useState('1');
-  const [bathrooms, setBathrooms] = useState('1');
+  const [series, setSeries] = useState('S');  // S = Seed, A, B, C
+  const [investMin, setInvestMin] = useState(0);
+  const [investMax, setInvestMax] = useState(100000);
+  const [industry, setIndustry] = useState('');
+
 
   useEffect(() => {
     const fetchPreferences = async () => {
       try {
         const { data, error } = await supabase
           .from('preferences')
-          .select('max_rent, bedrooms, bathrooms')
+          .select('series', 'investMin', 'investMax', 'industry') // need to change supa to match this
           .eq('id', user.id)
           .single();
 
@@ -25,49 +27,14 @@ const Preferences = ({ navigation }) => {
           throw error;
         }
 
-        if (data) {
-          setRent(data.max_rent);
-          if (data.bedrooms === 0) {
-            setBedrooms('Any');
-          } else if (data.bedrooms === 1) {
-            setBedrooms(1);
-          } else if (data.bedrooms === 2) {
-            setBedrooms(2);
-          } else if (data.bedrooms === 3) {
-            setBedrooms(3);
-          } else if (data.bedrooms === 4) {
-            setBedrooms(4);
-          } else if (data.bedrooms === 5) {
-            setBedrooms(5);
-          } else if (data.bedrooms === 6) {
-            setBedrooms(6);
-          } else if (data.bedrooms === 7) {
-            setBedrooms(7);
-          } else {
-            setBedrooms('8+');
-          }
-          if (data.bathrooms === 0) {
-            setBathrooms('Any');
-          } else if (data.bathrooms === 1) {
-            setBathrooms(1);
-          } else if (data.bathrooms === 2) {
-            setBathrooms(2);
-          } else if (data.bathrooms === 3) {
-            setBathrooms(3);
-          } else if (data.bathrooms === 4) {
-            setBathrooms(4);
-          } else if (data.bathrooms === 5) {
-            setBathrooms(5);
-          } else if (data.bathrooms === 6) {
-            setBathrooms(6);
-          } else if (data.bathrooms === 7) {
-            setBathrooms(7);
-          } else {
-            setBathrooms('8+');
-          }
+        if (data) { // set users prefs 
+          setSeries(data.series || 'S');
+          setInvestMin(data.invest_min || 0);
+          setInvestMax(data.invest_max || 100000);
+          setIndustry(data.industry || '');
         }
       } catch (error) {
-        // Alert.alert('Error fetching preferences:', error.message);
+        Alert.alert('Error fetching preferences:', error.message);
       }
     };
 
@@ -80,9 +47,10 @@ const Preferences = ({ navigation }) => {
         .from('preferences')
         .upsert({
           id: user.id,
-          max_rent: rent,
-          bedrooms: bedrooms === 'Any' ? 0 : parseInt(bedrooms),
-          bathrooms: bathrooms === 'Any' ? 0 : parseInt(bathrooms)
+          series: series,
+          invest_min: investMin,
+          invest_max: investMax,
+          industry: industry
         }, { onConflict: ['id'] });
 
       if (error) {
@@ -90,6 +58,8 @@ const Preferences = ({ navigation }) => {
       }
 
       // Alert.alert('Preferences updated successfully!');
+
+      // this will update preferences in Main cuz useFocusEffect block
       navigation.navigate('Main', { updated: true });
     } catch (error) {
       Alert.alert('Error saving preferences:', error.message);
@@ -107,73 +77,64 @@ const Preferences = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const handleRentChange = (text) => {
-    const numericValue = text.replace(/[^0-9]/g, ''); // Remove non-numeric characters
-    if (numericValue.length <= 5) {
-      setRent(parseInt(numericValue) || 0);
-    }
-  };
+  // ** commented out for now cuz don't need - will need if number input is a type of filter
+  // const handleRentChange = (text) => {
+  //   const numericValue = text.replace(/[^0-9]/g, ''); acters
+  //   if (numericValue.length <= 5) {
+  //     setRent(parseInt(numericValue) || 0);
+  //   }
+  // };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBanner}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Image source={require('./assets/BackButton.png')} style={styles.backIcon} />
-        </TouchableOpacity>
-        <Text style={styles.titleText}>Preferences</Text>
+      <View style={styles.section}>
+        <Text style={styles.label}>Series</Text>
+        {['S', 'A', 'B', 'C'].map(value => (
+          <TouchableOpacity
+            key={value}
+            style={[styles.button, series === value && styles.buttonSelected]}
+            onPress={() => setSeries(value)}
+          >
+            <Text style={[styles.buttonText, series === value && styles.buttonTextSelected]}>
+              {value}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
       <View style={styles.section}>
-        <Text style={styles.label}>Max Rent: ${rent}</Text>
-        <View style={styles.sliderContainer}>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={30000}
-            step={100}
-            value={rent}
-            onValueChange={setRent}
-          />
-          <TextInput
-            style={styles.rentInput}
-            value={rent.toString()}
-            keyboardType="numeric"
-            returnKeyType="done"
-            onChangeText={handleRentChange}
-            onSubmitEditing={() => Keyboard.dismiss()}
-          />
-        </View>
+        <Text style={styles.label}>Investment Range</Text>
+        <Text style={styles.label}>{`Min: $${investMin} - Max: $${investMax}`}</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={500000}
+          step={1000}
+          value={investMin}
+          onValueChange={value => setInvestMin(value)}
+        />
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={500000}
+          step={1000}
+          value={investMax}
+          onValueChange={value => setInvestMax(value)}
+        />
       </View>
       <View style={styles.section}>
-        <Text style={styles.label}>Bedrooms</Text>
-        <View style={styles.buttonContainer}>
-          {['Any', 1, 2, 3, 4, 5, 6, 7, '8+'].map(value => (
-            <CustomButton
-              key={value}
-              value={value}
-              selectedValue={bedrooms}
-              onPress={setBedrooms}
-            />
-          ))}
-        </View>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.label}>Bathrooms</Text>
-        <View style={styles.buttonContainer}>
-          {['Any', 1, 2, 3, 4, 5, 6, 7, '8+'].map(value => (
-            <CustomButton
-              key={value}
-              value={value}
-              selectedValue={bathrooms}
-              onPress={setBathrooms}
-            />
-          ))}
-        </View>
+        <Text style={styles.label}>Industry</Text>
+        <TextInput
+          style={styles.textInput}
+          value={industry}
+          onChangeText={setIndustry}
+          placeholder="Enter Industry"
+        />
       </View>
       <TouchableOpacity style={styles.saveButton} onPress={handleSavePreferences}>
           <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
     </SafeAreaView>
-  );
+  );  
 };
 
 const styles = StyleSheet.create({
