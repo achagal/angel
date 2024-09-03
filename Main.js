@@ -9,7 +9,7 @@ import uuid from 'react-native-uuid';
 
 const Main = ({ navigation }) => {
   const { user } = useUser(); // Get the user from context
-  const [houses, setHouses] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0); // Move currentIndex and setCurrentIndex here
@@ -35,11 +35,11 @@ const Main = ({ navigation }) => {
     }
   }, [user]);
 
-  const fetchHouses = useCallback(async (preferences) => {
+  const fetchCompanies = useCallback(async (preferences) => {
     if (preferences?.max_rent !== null) {
       try {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
+        const { data: profileData, error: profileError } = await supabase // is this the curr user?
+          .from('profiles') // these obv have to change 
           .select('school')
           .eq('id', user.id)
           .single();
