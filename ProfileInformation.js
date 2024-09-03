@@ -8,8 +8,8 @@ import supabase from './supabaseClient';  // Ensure this is the correct path to 
 import { useUser } from './UserContext';  // Ensure this is the correct path to your UserContext
 import uuid from 'react-native-uuid';
 
-// Initialize the Geocoder with your Google API key
-Geocoder.init('AIzaSyDVIGSrjBq35Kwj-0gKPYeRF2rheWHny-M');
+// Initialize the Geocoder with your Google API key 
+// deleted because pushing to githubx
 
 const ProfileInformation = () => {
   const navigation = useNavigation();

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import ProfileCard from './ProfileCard';
+//import ProfileCard from './ProfileCard';
 import SwipeStack from './SwipeStack';
-import supabase from './supabaseClient';  // Ensure this is the correct path to your Supabase client
+//import supabase from './supabaseClient';  // Ensure this is the correct path to your Supabase client
 import { useUser } from './UserContext';  // Ensure this is the correct path to your UserContext
 import { useFocusEffect } from '@react-navigation/native';
 import uuid from 'react-native-uuid';
